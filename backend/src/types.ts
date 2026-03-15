@@ -21,6 +21,6 @@ export interface EnergyCalculation {
 
 // Constants
 export const ENERGY_REGEN_RATE = 15; // energy per interval
-export const ENERGY_REGEN_INTERVAL = 3 * 60 * 60; // 3 hours in seconds
+export const ENERGY_REGEN_INTERVAL = 3 * 60 * 60; // 3 hours in seconds (kept for reference, actual regen uses fixed hours)
 export const MAX_ENERGY = 840;
 

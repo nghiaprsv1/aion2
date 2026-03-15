@@ -27,10 +27,41 @@ function App() {
 
   useEffect(() => {
     fetchCharacters();
-    
-    // Auto refresh every 60 seconds
-    const interval = setInterval(fetchCharacters, 60000);
-    return () => clearInterval(interval);
+
+    // Calculate time until next energy regen hour (0h, 3h, 6h, 9h, 12h, 15h, 18h, 21h Vietnam time)
+    const scheduleNextRefresh = () => {
+      const ENERGY_REGEN_HOURS = [0, 3, 6, 9, 12, 15, 18, 21];
+      const VIETNAM_TIMEZONE_OFFSET = 7 * 60 * 60 * 1000; // UTC+7 in milliseconds
+
+      const now = new Date();
+      const vietnamTime = new Date(now.getTime() + VIETNAM_TIMEZONE_OFFSET);
+      const currentHour = vietnamTime.getUTCHours();
+      const currentMinute = vietnamTime.getUTCMinutes();
+      const currentSecond = vietnamTime.getUTCSeconds();
+
+      // Find next regen hour
+      let nextRegenHour = ENERGY_REGEN_HOURS.find(h => h > currentHour);
+      let hoursUntilNext;
+
+      if (nextRegenHour === undefined) {
+        // Next regen is tomorrow at 0h
+        nextRegenHour = ENERGY_REGEN_HOURS[0];
+        hoursUntilNext = (24 - currentHour) + nextRegenHour;
+      } else {
+        hoursUntilNext = nextRegenHour - currentHour;
+      }
+
+      // Calculate milliseconds until next regen (add 5 seconds buffer)
+      const msUntilNext = (hoursUntilNext * 60 * 60 * 1000) - (currentMinute * 60 * 1000) - (currentSecond * 1000) + 5000;
+
+      return setTimeout(() => {
+        fetchCharacters();
+        scheduleNextRefresh(); // Schedule the next one
+      }, msUntilNext);
+    };
+
+    const timeoutId = scheduleNextRefresh();
+    return () => clearTimeout(timeoutId);
   }, []);
 
   const handleCreate = async (character: Omit<Character, 'id' | 'created_at' | 'updated_at'>) => {

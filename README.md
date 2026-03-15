@@ -5,7 +5,7 @@ Hệ thống quản lý năng lượng và Kina cho game AION2 với tính năng
 ## Tính năng
 
 - ✅ Quản lý nhiều tài khoản và nhân vật
-- ✅ Tự động tính toán năng lượng (15 năng lượng/3 tiếng, tối đa 840)
+- ✅ Tự động tính toán năng lượng (15 năng lượng vào 0h, 3h, 6h, 9h, 12h, 15h, 18h, 21h giờ VN, tối đa 840)
 - ✅ Hiển thị thời gian đầy năng lượng
 - ✅ Quản lý năng lượng phụ (tùy chỉnh)
 - ✅ Theo dõi Kina và sức mạnh

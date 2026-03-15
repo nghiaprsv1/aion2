@@ -154,7 +154,7 @@ export default function CharacterForm({ character, onSubmit, onClose }: Characte
                 max={MAX_ENERGY}
               />
               <p className="text-xs text-white/60 mt-1">
-                Tự động cộng 15 năng lượng mỗi 3 tiếng
+                Tự động cộng 15 năng lượng vào 0h, 3h, 6h, 9h, 12h, 15h, 18h, 21h (giờ VN)
               </p>
             </div>
 

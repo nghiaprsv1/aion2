@@ -47,6 +47,22 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
     setCurrentPage(1);
   };
 
+  // Calculate totals by account and server
+  const accountServerTotals = useMemo(() => {
+    const totals = new Map<string, { totalKina: number; count: number }>();
+
+    characters.forEach(char => {
+      const key = `${char.account_name}|||${char.server_name}`;
+      const existing = totals.get(key) || { totalKina: 0, count: 0 };
+      totals.set(key, {
+        totalKina: existing.totalKina + char.kina,
+        count: existing.count + 1
+      });
+    });
+
+    return totals;
+  }, [characters]);
+
   const filteredAndSortedCharacters = useMemo(() => {
     let filtered = characters.filter(char => {
       // Filter by search term
@@ -376,10 +392,16 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                   <span className="font-semibold text-sm">NL Phụ</span>
                 </th>
                 <th className="px-4 py-3 text-left">
+                  <span className="font-semibold text-sm">Tổng NL</span>
+                </th>
+                <th className="px-4 py-3 text-left">
                   <span className="font-semibold text-sm">Thời gian đầy</span>
                 </th>
                 <th className="px-4 py-3 text-left">
                   <span className="font-semibold text-sm">Kina</span>
+                </th>
+                <th className="px-4 py-3 text-left">
+                  <span className="font-semibold text-sm">Tổng Kina (Server)</span>
                 </th>
                 <th className="px-4 py-3 text-center">
                   <span className="font-semibold text-sm">Thao tác</span>
@@ -393,6 +415,9 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                 const energyPercentage = (currentEnergy / MAX_ENERGY) * 100;
                 const isFull = currentEnergy >= MAX_ENERGY;
                 const timeToFull = character.energy_calculation?.time_to_full || 0;
+
+                // Calculate total energy
+                const totalEnergy = currentEnergy + character.secondary_energy;
 
                 // Calculate time urgency level
                 const daysToFull = timeToFull / (24 * 60 * 60);
@@ -410,6 +435,10 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                   prevCharacter.account_name !== character.account_name ||
                   prevCharacter.server_name !== character.server_name;
 
+                // Get total Kina for this account+server combination
+                const accountServerKey = `${character.account_name}|||${character.server_name}`;
+                const serverTotalKina = accountServerTotals.get(accountServerKey)?.totalKina || 0;
+
                 return (
                   <tr key={character.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-4 py-3">
@@ -426,7 +455,10 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                       <div className="font-semibold text-white">{character.character_name}</div>
                     </td>
                     <td className="px-4 py-3 text-sm text-slate-300">{character.power.toLocaleString()}</td>
-                    <td className="px-4 py-3">
+                    <td
+                      className="px-4 py-3 cursor-pointer"
+                      onDoubleClick={() => !isEditing && handleEdit(character)}
+                    >
                       {isEditing ? (
                         <input
                           type="number"
@@ -434,6 +466,7 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                           onChange={(e) => setEditValues({ ...editValues, main_energy: parseInt(e.target.value) || 0 })}
                           className="input-field w-20 py-1 text-sm"
                           max={MAX_ENERGY}
+                          autoFocus
                         />
                       ) : (
                         <div className="space-y-1">
@@ -452,7 +485,10 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td
+                      className="px-4 py-3 cursor-pointer"
+                      onDoubleClick={() => !isEditing && handleEdit(character)}
+                    >
                       {isEditing ? (
                         <input
                           type="number"
@@ -463,6 +499,9 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                       ) : (
                         <span className="text-sm text-slate-400">{character.secondary_energy}</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-semibold text-cyan-400">{totalEnergy.toLocaleString()}</span>
                     </td>
                     <td className="px-4 py-3">
                       {isFull ? (
@@ -493,7 +532,10 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td
+                      className="px-4 py-3 cursor-pointer"
+                      onDoubleClick={() => !isEditing && handleEdit(character)}
+                    >
                       {isEditing ? (
                         <input
                           type="number"
@@ -503,6 +545,11 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                         />
                       ) : (
                         <span className="text-sm text-slate-300">{character.kina.toLocaleString()}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {showServer && (
+                        <span className="text-sm font-semibold text-green-400">{serverTotalKina.toLocaleString()}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -530,15 +577,6 @@ export default function CharacterList({ characters, onEdit, onDelete, onUpdate }
                           </>
                         ) : (
                           <>
-                            <button
-                              onClick={() => handleEdit(character)}
-                              className="p-1.5 bg-slate-500/20 hover:bg-slate-500/30 rounded transition-all"
-                              title="Sửa nhanh"
-                            >
-                              <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                              </svg>
-                            </button>
                             <button
                               onClick={() => onEdit(character)}
                               className="p-1.5 bg-white/10 hover:bg-white/20 rounded transition-all"

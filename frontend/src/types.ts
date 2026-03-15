@@ -21,6 +21,6 @@ export interface EnergyCalculation {
 }
 
 export const ENERGY_REGEN_RATE = 15;
-export const ENERGY_REGEN_INTERVAL = 3 * 60 * 60;
+export const ENERGY_REGEN_INTERVAL = 3 * 60 * 60; // kept for reference, actual regen uses fixed hours
 export const MAX_ENERGY = 840;
 
